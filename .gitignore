@@ -1,0 +1,41 @@
+# Ignore all files by default, but scan all directories
+*
+!*/
+
+# git
+!.gitignore
+!*.md
+
+# Clang configs
+!.clang* 
+
+# C++
+!*.hpp
+!*.cpp
+
+# Java
+!*.java
+
+# Android
+!AndroidManifest.xml
+
+# Qt
+!*.ui
+!*.qml
+!*.qrc
+!*.qss
+!*.png
+
+# CMake
+!CMakeLists.txt
+!CMakePresets.json
+
+# Gradle
+!build.gradle
+!settings.gradle
+!gradle.properties
+!gradlew
+!gradlew.bat
+
+# Output
+/build/
