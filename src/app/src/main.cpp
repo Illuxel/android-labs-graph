@@ -1,22 +1,25 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlEngine>
 
-#include <QQuickStyle>
+#include <QQmlExtensionPlugin>
+
+Q_IMPORT_QML_PLUGIN(lab_corePlugin)
 
 qint32 main(int argc, char *argv[]) {
 
   QGuiApplication app(argc, argv);
 
-  QGuiApplication::setApplicationName("lab1");
-  QGuiApplication::setApplicationDisplayName("lab1");
-  QGuiApplication::setApplicationVersion("1.0");
+  QGuiApplication::setApplicationName("lab2");
+  QGuiApplication::setApplicationDisplayName("lab2");
+  QGuiApplication::setOrganizationDomain("nubip");
 
-  QQuickStyle::setStyle("Material");
+  QQmlApplicationEngine engine;
 
-  QQmlApplicationEngine engine(":/lab/qml/import/MainWindow.qml");
+  // engine.addImportPath("qrc:/");
+
+  engine.loadFromModule("lab.app", "MainWindow");
 
   if (engine.rootObjects().isEmpty())
-    return -1;
+    return EXIT_FAILURE;
   return app.exec();
 }

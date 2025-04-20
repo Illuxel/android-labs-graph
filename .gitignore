@@ -24,6 +24,9 @@
 !*.qml
 !*.qrc
 !*.qss
+!*.conf
+
+#
 !*.png
 
 # CMake
