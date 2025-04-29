@@ -3,9 +3,15 @@ cmake_minimum_required( VERSION 3.15 )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
-project( lab VERSION 2.0 LANGUAGES CXX )
+project( labs
+    VERSION 3.0
+    LANGUAGES CXX
+    DESCRIPTION "Android Qt labs"
+)
 
-find_package( Qt6 COMPONENTS Core Gui Quick QuickControls2 REQUIRED )
+set( PROJECT_URI "nubip.edu.ua" )
+
+find_package( Qt6 COMPONENTS Qml Quick QuickControls2 Graphs REQUIRED )
 qt_standard_project_setup( REQUIRES 6.5 I18N_SOURCE_LANGUAGE en )
 
 add_subdirectory( src/core )

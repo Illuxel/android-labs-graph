@@ -1,8 +1,11 @@
 
 
 set( INCLUDES
+
     include/MathInput.hpp
+    include/MathResult.hpp
     include/MathFunction.hpp
+    include/SaveManger.hpp
 )
 
 set( SOURCES
@@ -10,21 +13,30 @@ set( SOURCES
     ${INCLUDES}
 
     src/MathInput.cpp
+    src/MathResult.cpp
     src/MathFunction.cpp
+    src/SaveManager.cpp
 )
 
-qt_add_library( lab.core STATIC )
+qt_policy( SET QTP0001 NEW ) # Ensures that modules are put into the QML Import Path and can be found without further setup.
+qt_policy( SET QTP0004 NEW ) #
 
-target_include_directories( lab.core
+set( LIB_NAME "labs.core" )
+
+qt_add_library( ${LIB_NAME} STATIC MANUAL_FINALIZATION )
+
+target_include_directories( ${LIB_NAME}
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 )
-target_link_libraries( lab.core PRIVATE Qt6::Qml )
+target_link_libraries( ${LIB_NAME} PRIVATE Qt6::Qml )
 
-qt_add_qml_module( lab.core
-    URI "lab.core"
+qt_add_qml_module( ${LIB_NAME}
+    URI "${LIB_NAME}"
     VERSION 1.0
     SOURCES ${SOURCES}
-    RESOURCE_PREFIX "/"
-    OUTPUT_DIRECTORY "lab/core"
-    PLUGIN_TARGET "lab_coreplugin"
+    OUTPUT_DIRECTORY "labs/core"
+    PLUGIN_TARGET "${LIB_NAME}plugin"
+    RESOURCE_PREFIX "${PROJECT_URI}/imports"
 )
+
+qt_finalize_target( ${LIB_NAME} )

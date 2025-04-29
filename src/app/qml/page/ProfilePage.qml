@@ -4,10 +4,15 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 ScrollView {
-    id: page
+    id: profilePage
 
     anchors.fill: parent
-    contentWidth: page.width
+    contentWidth: profilePage.width
+
+    ScrollBar.vertical: ScrollBar {
+        id: pageScroll
+        policy: ScrollBar.AsNeeded
+    }
 
     ColumnLayout {
         id: layout
@@ -17,7 +22,7 @@ ScrollView {
         Image {
             id: profileImg
             asynchronous: true
-            source: "qrc:/lab/images/profile.png"
+            source: "qrc:/images/profile.png"
             fillMode: Image.PreserveAspectFit
             Layout.topMargin: 10
             Layout.alignment: Qt.AlignCenter
@@ -35,7 +40,7 @@ ScrollView {
 
         Label {
             id: text2
-            text: qsTr("<p><b>Хочу оновити свої додатки Qt та написати гру на Vulkan</b></p>")
+            text: qsTr("<p><b>Хочу оновити свої додатки Qt та написати гру на Vulkan.</b></p>")
             font.pointSize: 18
             wrapMode: Text.WordWrap
 

@@ -3,21 +3,19 @@
 
 #include <QQmlExtensionPlugin>
 
-Q_IMPORT_QML_PLUGIN(lab_corePlugin)
+Q_IMPORT_QML_PLUGIN(labs_corePlugin)
 
 qint32 main(int argc, char *argv[]) {
 
   QGuiApplication app(argc, argv);
 
-  QGuiApplication::setApplicationName("lab2");
-  QGuiApplication::setApplicationDisplayName("lab2");
-  QGuiApplication::setOrganizationDomain("nubip");
+  QGuiApplication::setApplicationName("lab3");
+  QGuiApplication::setApplicationDisplayName("lab3");
+  QGuiApplication::setOrganizationDomain("nubip.edu.ua");
 
   QQmlApplicationEngine engine;
-
-  // engine.addImportPath("qrc:/");
-
-  engine.loadFromModule("lab.app", "MainWindow");
+  engine.addImportPath("qrc:/nubip.edu.ua/imports");
+  engine.loadFromModule("labs.app", "MainWindow");
 
   if (engine.rootObjects().isEmpty())
     return EXIT_FAILURE;

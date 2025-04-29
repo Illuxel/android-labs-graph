@@ -12,53 +12,68 @@ set( THEME_CONFIGS
 
 set( QML_SOURCES
 
-    imports/MainWindow.qml
-    imports/page/FunctionPage.qml
-    imports/page/ProfilePage.qml
+    qml/js/utils.js
+    qml/MainWindow.qml
+    qml/page/FunctionPage.qml
+    qml/page/ProfilePage.qml
 )
 
-qt_policy( SET QTP0004 NEW )
-qt_add_executable( lab.app src/main.cpp )
+set( SOURCES
+    src/main.cpp
+)
 
-target_link_libraries( lab.app PUBLIC Qt6::Qml Qt6::Quick Qt6::QuickControls2 lab.core lab_coreplugin )
+qt_policy( SET QTP0001 NEW ) # Ensures that modules are put into the QML Import Path and can be found without further setup.
+qt_policy( SET QTP0002 NEW ) # Support for cmake generator expressions in android json builds
+qt_policy( SET QTP0004 NEW ) #
 
-set_target_properties( lab.app PROPERTIES
+set( APP_NAME "labs.app" )
+
+qt_add_executable( ${APP_NAME} ${SOURCES} MANUAL_FINALIZATION )
+
+target_link_libraries( ${APP_NAME} PUBLIC Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Graphs labs.core labs.coreplugin )
+
+set_target_properties( ${APP_NAME} PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
+    QT_ANDROID_APP_NAME "${APP_NAME}"
+    QT_ANDROID_VERSION_CODE "${PROJECT_VERSION_MAJOR}"
+    QT_ANDROID_VERSION_NAME "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
+    QT_ANDROID_PACKAGE_NAME "${PROJECT_URI}.${APP_NAME}"
+    QT_ANDROID_PACKAGE_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/android"
 )
 
-qt_import_qml_plugins( lab.app )
-
 # Register qtquickcontrols2.conf
-qt_add_resources( lab.app "app_configs"
-    PREFIX "/"
-    BASE "configs"
+qt_add_resources( ${APP_NAME} "app_configs"
+    BASE "config"
     FILES ${THEME_CONFIGS}
 )
 
 # Add images
-qt_add_resources( lab.app "app_images"
-    PREFIX "/lab"
+qt_add_resources( ${APP_NAME} "app_images"
     FILES ${ASSETS}
 )
 
 # Add qmls
-qt_add_qml_module( lab.app
-    URI "lab.app"
+qt_add_qml_module( ${APP_NAME}
+    URI "${APP_NAME}"
     VERSION 1.0
-    RESOURCE_PREFIX ""
-    IMPORTS "lab.core/auto"
+    RESOURCE_PREFIX "${PROJECT_URI}/imports"
+    IMPORTS "labs.core/auto"
     QML_FILES ${QML_SOURCES}
 )
 
-install( TARGETS lab.app
+qt_import_qml_plugins( ${APP_NAME} )
+
+qt_finalize_target( ${APP_NAME} )
+
+install( TARGETS ${APP_NAME}
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 qt_generate_deploy_qml_app_script(
-    TARGET lab.app
+    TARGET ${APP_NAME}
     OUTPUT_SCRIPT deploy_script
     MACOS_BUNDLE_POST_BUILD
     NO_UNSUPPORTED_PLATFORM_ERROR

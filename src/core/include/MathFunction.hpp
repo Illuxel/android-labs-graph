@@ -1,42 +1,80 @@
 #pragma once
 
-#include <QObject>
-#include <QtQmlIntegration>
-
 #include "MathInput.hpp"
+#include "MathResult.hpp"
 
 class MathFunction : public QObject {
 
   Q_OBJECT
   QML_ELEMENT
-  Q_PROPERTY(QVariant model READ model NOTIFY modelChanged);
-  Q_PROPERTY(QList<MathInput> inputs READ inputs WRITE setInputs); //
+  Q_PROPERTY(std::vector<QString> names WRITE setNames CONSTANT);
+
+  Q_PROPERTY(qsizetype currentIndex MEMBER m_CurrentIndex WRITE setVariableIndex
+                 NOTIFY currentIndexChanged);
+
+  Q_PROPERTY(qreal step MEMBER m_Step WRITE setStep NOTIFY stepChanged);
+  Q_PROPERTY(QPointF range MEMBER m_Range WRITE setRange NOTIFY rangeChanged);
+
+  Q_PROPERTY(MathInputs vars MEMBER m_Vars NOTIFY varsChanged);
+  Q_PROPERTY(MathResults results MEMBER m_Results NOTIFY resultsChanged);
 
 public:
   using QObject::QObject;
+  using MathInputs = std::vector<MathInput>;
+  using MathResults = std::vector<MathResult>;
 
-  void setInputs(const QList<MathInput> &mathInputs);
+  void setNames(const std::vector<QString> &names);
 
-  Q_INVOKABLE void setValue(const qsizetype index, const qreal newValue);
+  Q_INVOKABLE void setStep(const qreal step);
+  Q_INVOKABLE void setRange(const QPointF &range);
+
+  Q_INVOKABLE void setVariableIndex(const qsizetype index);
+
+  void setValue(const qsizetype index, const qreal newValue);
   Q_INVOKABLE void setValue(const QString &name, const qreal newValue);
 
-  Q_INVOKABLE qreal value(const QString &name) const;
+  inline qreal value(const qsizetype index) const;
 
-  inline QVariant model() const { return m_Model; }
-  inline QList<MathInput> inputs() const { return m_Inputs; }
+  Q_INVOKABLE qreal value(const QString &name) const;
+  Q_INVOKABLE QString name(const qsizetype index) const;
+
+  inline qsizetype currentIndex() const { return m_CurrentIndex; }
+
+  inline qreal step() const { return m_Step; }
+  inline QPointF range() const { return m_Range; }
+
+  inline MathInputs vars() const { return m_Vars; }
+  inline MathResults results() const { return m_Results; }
 
   Q_INVOKABLE qreal calculate();
+  Q_INVOKABLE qint64 calculateRange(const bool start, const bool end);
+
+  QJsonObject toJson() const;
+  void fromJson(const QJsonObject &object);
 
 private:
-  void setModel(const QList<MathInput> &mathInputs);
+  qsizetype index(const QStringView name) const;
 
-  qsizetype getIndex(const QString &name) const;
+  void reserve(const qsizetype count);
+  void reserveResult(const qsizetype count);
 
 signals:
-  void modelChanged();
-  void inputChanged(const qsizetype currentIndex);
+  void currentIndexChanged();
+
+  void stepChanged();
+  void rangeChanged();
+
+  void varsChanged();
+  void resultsChanged();
 
 private:
-  QList<MathInput> m_Inputs;
-  QVariantList m_Model;
+  qsizetype m_CurrentIndex = -1;
+
+  qreal m_Step;
+  QPointF m_Range;
+
+  QElapsedTimer m_Timer;
+
+  MathInputs m_Vars;
+  MathResults m_Results;
 };
