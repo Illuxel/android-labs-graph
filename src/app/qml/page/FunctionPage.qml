@@ -40,13 +40,18 @@ ScrollView {
     // Construction
     Component.onCompleted: {
         if (page.settings.autoLoadFunction) {
-            page.saveManager.load(app.settings.filePath);
+            if (page.saveManager.load()) {
+                console.log("Function restored");
+            } else {
+                console.log("Failed to restore a function");
+            }
         }
     }
     // Destruction
     Component.onDestruction: {}
 
     ScrollBar.vertical: ScrollBar {
+        id: pageScroll
         policy: ScrollBar.AsNeeded
         parent: page.parent
         anchors {
@@ -118,6 +123,7 @@ ScrollView {
                     // fix
 
                     ScrollBar.vertical: ScrollBar {
+                        parent: inputVarsList.parent
                         policy: ScrollBar.AsNeeded
                     }
 
@@ -125,11 +131,13 @@ ScrollView {
                         required property real value
                         required property string valueName
 
-                        placeholderText: qsTr("Введіть значення ") + valueName + "(" + value + ")..."
-                        validator: DoubleValidator {}
-
                         width: inputVarsList.width
                         height: 35
+
+                        placeholderText: qsTr("Введіть значення ") + valueName + "(" + value + ")..."
+                        validator: DoubleValidator {
+                            notation: DoubleValidator.StandardNotation
+                        }
 
                         onTextChanged: page.mathFunc.setValue(valueName, parseFloat(text))
                     }
@@ -180,29 +188,32 @@ ScrollView {
                     TextField {
                         id: rangeStartField
                         text: page.mathFunc.range.x
-                        validator: DoubleValidator {}
-                        placeholderText: qsTr("Початок")
+                        placeholderText: qsTr("Початок") + " (" + page.mathFunc.range.x + ")"
+                        validator: DoubleValidator {
+                            notation: DoubleValidator.StandardNotation
+                        }
                         Layout.fillWidth: true
-                        onTextEdited: page.mathFunc.range.x = text
                     }
 
                     TextField {
                         id: rangeEndField
                         text: page.mathFunc.range.y
-                        placeholderText: qsTr("Кінець")
-                        validator: DoubleValidator {}
+                        placeholderText: qsTr("Кінець") + " (" + page.mathFunc.range.y + ")"
+                        validator: DoubleValidator {
+                            notation: DoubleValidator.StandardNotation
+                        }
                         Layout.fillWidth: true
-                        onTextEdited: page.mathFunc.range.y = text
                     }
                 }
 
                 TextField {
                     id: rangeStepField
                     text: page.mathFunc.step
-                    placeholderText: qsTr("Інтервал")
-                    validator: DoubleValidator {}
+                    placeholderText: qsTr("Інтервал") + " (" + page.mathFunc.step + ")"
+                    validator: DoubleValidator {
+                        notation: DoubleValidator.StandardNotation
+                    }
                     Layout.fillWidth: true
-                    onTextEdited: page.mathFunc.step = text
                 }
 
                 CheckBox {
@@ -247,7 +258,9 @@ ScrollView {
                     id: resultField
                     readOnly: true
                     placeholderText: qsTr("Результат")
-                    validator: DoubleValidator {}
+                    validator: DoubleValidator {
+                        notation: DoubleValidator.StandardNotation
+                    }
                     Layout.fillWidth: true
                 }
 
@@ -276,8 +289,9 @@ ScrollView {
                             const start = parseFloat(rangeStartField.text);
                             const end = parseFloat(rangeEndField.text);
 
-                            page.mathFunc.step = step;
-                            page.mathFunc.range = Qt.point(start, end);
+                            page.mathFunc.setStep(step);
+                            page.mathFunc.setRange(Qt.point(start, end));
+                            page.mathFunc.setVariableIndex(varsCombo.currentIndex);
 
                             if (page.mathFunc.currentIndex == -1) {
                                 Utils.openErrorDialog(msgDialog, qsTr("Ви не обрали змінну для розрахування діапазону"));

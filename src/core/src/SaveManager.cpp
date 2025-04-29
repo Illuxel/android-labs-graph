@@ -2,9 +2,9 @@
 
 #include "MathFunction.hpp"
 
-bool SaveManager::save(const QUrl &filePath) {
+bool SaveManager::save() {
 
-  QFile file(filePath.toLocalFile());
+  QFile file(m_FilePath.toLocalFile());
 
   if (!m_Function) {
     return false;
@@ -28,9 +28,9 @@ bool SaveManager::save(const QUrl &filePath) {
 
   return true;
 }
-bool SaveManager::load(const QUrl &filePath) {
+bool SaveManager::load() {
 
-  QFile file(filePath.toLocalFile());
+  QFile file(m_FilePath.toLocalFile());
 
   if (!m_Function) {
     return false;
@@ -45,9 +45,15 @@ bool SaveManager::load(const QUrl &filePath) {
 
   m_Timer.start();
 
-  const QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+  QJsonParseError *error = nullptr;
+  const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), error);
   m_Function->fromJson(doc.object());
   file.close();
+
+  if (error) {
+    qDebug() << error->errorString();
+    return false;
+  }
 
   qDebug() << "Loading file took: " << m_Timer.elapsed() << "ms "
            << m_Timer.nsecsElapsed() << "ns";

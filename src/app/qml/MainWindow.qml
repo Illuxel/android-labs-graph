@@ -27,7 +27,7 @@ ApplicationWindow {
         property alias x: app.x
         property alias y: app.y
 
-        property alias filePath: app.fileDialog.currentFile
+        property alias filePath: app.saveManager.filePath
 
         property alias currentPageIndex: view.currentIndex
         property alias currentMathIndex: app.mathFunc.currentIndex
@@ -42,7 +42,7 @@ ApplicationWindow {
 
     // Save math function
     property SaveManager saveManager: SaveManager {
-        fileName: "function.json"
+        filePath: StandardPaths.writableLocation(StandardPaths.DocumentsLocation) + '/' + "function.json"
         functionObject: mathFunc
     }
 
@@ -50,14 +50,13 @@ ApplicationWindow {
     property FileDialog fileDialog: FileDialog {
         modality: Qt.ApplicationModal
         nameFilters: ["JSON files (*.json)"]
-        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-        currentFile: app.saveManager.fileName
+        currentFile: app.saveManager.filePath
 
         onAccepted: {
             let isWorked = false;
 
             if (fileMode == FileDialog.SaveFile) {
-                isWorked = app.saveManager.save(currentFile);
+                isWorked = app.saveManager.save();
 
                 if (!isWorked) {
                     Utils.openErrorDialog(msgDialog, qsTr("Сталася помилка при збереженні файлу"));
@@ -66,7 +65,7 @@ ApplicationWindow {
                     Utils.openInfoDialog(msgDialog, qsTr("Файл збережено до " + urlObject.pathname));
                 }
             } else {
-                isWorked = app.saveManager.load(currentFile);
+                isWorked = app.saveManager.load();
 
                 if (!isWorked) {
                     Utils.openErrorDialog(msgDialog, qsTr("Сталася помилка при завантаженні файлу"));
@@ -126,6 +125,34 @@ ApplicationWindow {
         }
     }
 
+    SwipeView {
+        id: view
+        interactive: true
+        currentIndex: app.settings.currentPageIndex
+
+        anchors.fill: parent
+
+        onCurrentIndexChanged: {
+            const pageInfo = pagesModel.get(view.currentIndex);
+            pageLabel.text = pageInfo.pageName;
+        }
+
+        Repeater {
+            model: pagesModel
+
+            Loader {
+                required property string pageName
+                required property string pageSource
+
+                asynchronous: true
+                active: SwipeView.isCurrentItem || SwipeView.isNextItem || SwipeView.isPreviousItem
+                source: pageSource
+
+                onLoaded: pageLabel.text = pageName
+            }
+        }
+    }
+
     menuBar: ToolBar {
         RowLayout {
             anchors.fill: parent
@@ -165,38 +192,6 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("Вийти")
                 onTriggered: Qt.quit()
-            }
-        }
-    }
-
-    SwipeView {
-        id: view
-        interactive: true
-        currentIndex: app.settings.currentPageIndex
-
-        anchors.fill: parent
-
-        onCurrentIndexChanged: {
-            const pageInfo = pagesModel.get(view.currentIndex);
-            pageLabel.text = pageInfo.pageName;
-            app.settings.currentPageIndex = view.currentIndex;
-        }
-
-        Repeater {
-            model: pagesModel
-
-            Loader {
-                id: pageLoader
-
-                required property string pageName
-                required property string pageSource
-
-                asynchronous: true
-                active: SwipeView.isCurrentItem || SwipeView.isNextItem || SwipeView.isPreviousItem
-
-                source: pageSource
-
-                onLoaded: pageLabel.text = pageName
             }
         }
     }
