@@ -46,10 +46,12 @@ public:
   inline MathInputs vars() const { return m_Vars; }
   inline MathResults results() const { return m_Results; }
 
+  std::vector<qreal> points() const;
+
   Q_INVOKABLE qreal calculate();
   Q_INVOKABLE qint64 calculateRange(const bool start, const bool end);
 
-  QJsonObject toJson() const;
+  void toJson(QJsonObject &object) const;
   void fromJson(const QJsonObject &object);
 
 private:

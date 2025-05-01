@@ -24,8 +24,8 @@ public:
   inline qreal getStep() const { return step; }
   inline qreal getResult() const { return result; }
 
-  QJsonObject toJson() const;
-  static MathResult fromJson(const QJsonObject &object);
+  void toJson(QJsonObject &object) const;
+  void fromJson(const QJsonObject &object);
 
   bool operator==(const MathResult &other) const {
     return result == other.result && step == other.step;

@@ -19,9 +19,13 @@ bool SaveManager::save() {
 
   m_Timer.start();
 
-  const QJsonDocument doc(m_Function->toJson());
-  file.write(doc.toJson(QJsonDocument::JsonFormat::Compact));
-  file.close();
+  {
+    QJsonObject object;
+    m_Function->toJson(object);
+    const QJsonDocument doc(object);
+    file.write(doc.toJson(QJsonDocument::JsonFormat::Compact));
+    file.close();
+  }
 
   qDebug() << "Saving file took: " << m_Timer.elapsed() << "ms "
            << m_Timer.nsecsElapsed() << "ns";
@@ -45,14 +49,16 @@ bool SaveManager::load() {
 
   m_Timer.start();
 
-  QJsonParseError *error = nullptr;
-  const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), error);
-  m_Function->fromJson(doc.object());
-  file.close();
+  {
+    QJsonParseError *error = nullptr;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), error);
+    m_Function->fromJson(doc.object());
+    file.close();
 
-  if (error) {
-    qDebug() << error->errorString();
-    return false;
+    if (error) {
+      qDebug() << error->errorString();
+      return false;
+    }
   }
 
   qDebug() << "Loading file took: " << m_Timer.elapsed() << "ms "

@@ -57,36 +57,44 @@ qsizetype MathFunction::index(const QStringView name) const {
   return it != m_Vars.cend() ? std::distance(m_Vars.cbegin(), it) : -1;
 }
 
-QJsonObject MathFunction::toJson() const {
+void MathFunction::toJson(QJsonObject &object) const {
+
+  object["step"] = m_Step;
+  object["variable"] = m_CurrentIndex;
+  object["range"] = QJsonArray{m_Range.x(), m_Range.y()};
 
   QJsonArray vars;
   QJsonArray results;
 
+  QJsonObject varObj;
+  QJsonObject resultObj;
+
   for (const MathInput &var : m_Vars) {
-    vars.push_back(var.toJson());
+    var.toJson(varObj);
+    vars.push_back(varObj);
   }
 
   for (const MathResult &result : m_Results) {
-    results.push_back(result.toJson());
+    result.toJson(resultObj);
+    results.push_back(resultObj);
   }
 
-  return {
-      {"step", m_Step},                                //
-      {"range", QJsonArray{m_Range.x(), m_Range.y()}}, //
-      {"variable", m_CurrentIndex},                    //
-      {"inputs", vars},                                //
-      {"results", results},                            //
-  };
+  object["vars"] = std::move(vars);
+  object["results"] = std::move(results);
 }
 
 void MathFunction::fromJson(const QJsonObject &object) {
 
+  m_Timer.start();
+
   m_Step = object["step"].toDouble(0.5);
   m_CurrentIndex = object["variable"].toInteger(-1);
 
-  const QJsonArray &range = object["range"].toArray({0., 1.});
-  m_Range.setX(range[0].toDouble());
-  m_Range.setY(range[1].toDouble());
+  {
+    const QJsonArray &range = object["range"].toArray({0., 1.});
+    m_Range.setX(range[0].toDouble());
+    m_Range.setY(range[1].toDouble());
+  }
 
   const QJsonArray &inputs = object["inputs"].toArray();
   const QJsonArray &results = object["results"].toArray();
@@ -95,13 +103,28 @@ void MathFunction::fromJson(const QJsonObject &object) {
   reserve(inputs.size());
   reserveResult(results.size());
 
-  for (QJsonValueConstRef value : inputs)
-    m_Vars.emplace_back(std::move(MathInput::fromJson(value.toObject())));
+  {
+    MathInput var;
 
-  for (QJsonValueConstRef value : results)
-    m_Results.emplace_back(std::move(MathResult::fromJson(value.toObject())));
+    for (QJsonValueConstRef value : inputs) {
+      var.fromJson(value.toObject());
+      m_Vars.emplace_back(std::move(var));
+    }
+  }
 
-  emit currentIndexChanged();
+  {
+    MathResult result;
+
+    for (QJsonValueConstRef value : results) {
+      result.fromJson(value.toObject());
+      m_Results.emplace_back(std::move(result));
+    }
+  }
+
+  const qint64 msTime = m_Timer.elapsed();
+  const qint64 nsTime = m_Timer.nsecsElapsed();
+
+  qDebug() << "fromJson took: " << msTime << "ms " << nsTime << "ns";
 
   emit stepChanged();
   emit rangeChanged();
@@ -134,15 +157,17 @@ qint64 MathFunction::calculateRange(const bool start, const bool end) {
 
   m_Timer.start();
 
-  const qsizetype rangeSize =
-      getRangeSize(m_Range.x(), m_Range.y(), m_Step); // precalc size
+  {
+    const qsizetype rangeSize =
+        getRangeSize(m_Range.x(), m_Range.y(), m_Step); // precalc size
+
+    reserveResult(rangeSize);
+  }
 
   const qreal modX = start ? m_Range.x() : m_Range.x() + m_Step;
   const qreal modY = end ? m_Range.y() + m_Step : m_Range.y();
 
   const qreal oldValue = value(currentIndex()); // save old input value
-
-  reserveResult(rangeSize);
 
   for (qreal x = modX; x < modY; x += m_Step) {
     setValue(currentIndex(), x);
@@ -151,10 +176,12 @@ qint64 MathFunction::calculateRange(const bool start, const bool end) {
 
   setValue(currentIndex(), oldValue); // restore old value
 
-  qDebug() << "Calculation took: " << m_Timer.elapsed() << "ms "
-           << m_Timer.nsecsElapsed() << "ns";
+  const qint64 msTime = m_Timer.elapsed();
+  const qint64 nsTime = m_Timer.nsecsElapsed();
+
+  qDebug() << "Calculation took: " << msTime << "ms " << nsTime << "ns";
 
   emit resultsChanged();
 
-  return m_Timer.elapsed();
+  return msTime;
 }

@@ -1,14 +1,10 @@
 #include "MathInput.hpp"
 
-QJsonObject MathInput::toJson() const {
-  return {
-      {"name", name},   //
-      {"value", value}, //
-  };
+void MathInput::toJson(QJsonObject &object) const {
+  object["name"] = name;   //
+  object["value"] = value; //
 }
-MathInput MathInput::fromJson(const QJsonObject &object) {
-  return {
-      object["name"].toString(), //
-      object["value"].toDouble() //
-  };
+void MathInput::fromJson(const QJsonObject &object) {
+  name = object["name"].toString();   //
+  value = object["value"].toDouble(); //
 }

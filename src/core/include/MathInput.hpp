@@ -24,8 +24,8 @@ public:
   inline QString getValueName() const { return name; }
   inline qreal getValue() const { return value; }
 
-  QJsonObject toJson() const;
-  static MathInput fromJson(const QJsonObject &object);
+  void toJson(QJsonObject &object) const;
+  void fromJson(const QJsonObject &object);
 
   bool operator==(const QStringView name) const { return this->name == name; }
   bool operator==(const MathInput &other) const {
