@@ -1,11 +1,9 @@
 # Лабораторна робота №1-4
 
-> Мета: Навчитись використовувати АРІ двомірної графіки для візуалізації даних у мобільних застосунках.
-
 - [Лабораторна №1](https://github.com/Illuxel/android-labs/tree/lab1)
 - [Лабораторна №2](https://github.com/Illuxel/android-labs/tree/lab2)
-- [Лабораторна №3](https://github.com/Illuxel/android-labs/tree/lab3)
-- [Лабораторна №4](https://github.com/Illuxel/android-labs/tree/lab4)
+
+> Мета: Навчитись використовувати АРІ двомірної графіки для візуалізації даних у мобільних застосунках.
 
 ## Збирання проєкту
 
