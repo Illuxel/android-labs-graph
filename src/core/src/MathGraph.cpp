@@ -40,9 +40,7 @@ void MathGraph::setFunction(MathFunction *function)
         m_Ranges.emplace_back(-1, 1, axis.name);
     }
 
-    if (!m_PointsModel) {
-        m_PointsModel = new MathGraphViewModel(m_Points);
-    }
+    m_PointsModel = new MathGraphViewModel(m_Points);
 
     emit rangesChanged();
 }

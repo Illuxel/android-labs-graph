@@ -64,12 +64,51 @@ ScrollView {
         anchors.margins: app.sideMargins
         spacing: 10
 
-        // Range settings
+        // Display Graph
         GroupBox {
 
             label: Label {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Проміжок")
+                text: qsTr("Графік")
+                font.pointSize: app.headerTextSize
+                font.bold: true
+            }
+
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+
+            ColumnLayout {
+                anchors.fill: parent
+
+                // Graph type
+                ComboBox {
+                    id: graphsCombo
+                    displayText: currentIndex != -1 ? graphsCombo.currentText : qsTr("Оберіть тип графіку...")
+                    model: page.graphsList
+                    textRole: "graphName"
+                    valueRole: "graphSource"
+                    Layout.fillWidth: true
+                }
+
+                // Async graph loader
+                Loader {
+                    id: graphLoader
+                    asynchronous: true
+                    source: graphsCombo.currentValue
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Math.min(page.contentHeight, page.height * 0.50)
+                }
+            }
+        }
+
+        // Graph settings
+        GroupBox {
+
+            label: Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: qsTr("Налаштування графіку")
                 font.pointSize: app.contentTextSize
                 font.bold: true
             }
@@ -222,45 +261,6 @@ ScrollView {
                 CheckBox {
                     id: rangeEndInclude
                     text: qsTr("Включити кінець")
-                }
-            }
-        }
-
-        // Display Graph
-        GroupBox {
-
-            label: Label {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Графік")
-                font.pointSize: app.headerTextSize
-                font.bold: true
-            }
-
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
-
-            ColumnLayout {
-                anchors.fill: parent
-
-                // Graph type
-                ComboBox {
-                    id: graphsCombo
-                    displayText: currentIndex != -1 ? graphsCombo.currentText : qsTr("Оберіть тип графіку...")
-                    model: page.graphsList
-                    textRole: "graphName"
-                    valueRole: "graphSource"
-                    Layout.fillWidth: true
-                }
-
-                // Async graph loader
-                Loader {
-                    id: graphLoader
-                    asynchronous: true
-                    source: graphsCombo.currentValue
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(page.contentHeight, page.height * 0.50)
                 }
             }
         }
