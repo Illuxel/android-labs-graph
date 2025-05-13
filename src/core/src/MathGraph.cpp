@@ -1,38 +1,26 @@
 #include "MathGraph.hpp"
 #include "MathFunction.hpp"
 
-MathGraphViewModel::MathGraphViewModel(std::vector<MathPoint> &points, QObject *parent)
-    : QAbstractListModel(parent)
+MathPointViewModel::MathPointViewModel(std::vector<MathPoint> &points, QObject *parent)
+    : Base(parent)
     , m_PointsView(points)
 {}
 
-void MathGraphViewModel::startModelUpdate()
-{
-    beginResetModel();
-}
-void MathGraphViewModel::endModelUpdate()
-{
-    endResetModel();
-}
-
-int MathGraphViewModel::rowCount(const QModelIndex &parent) const
+int MathPointViewModel::rowCount(const QModelIndex &parent) const
 {
     return m_PointsView.size();
 }
-
-QVariant MathGraphViewModel::data(const QModelIndex &index, int role) const
+QVariant MathPointViewModel::data(const QModelIndex &index, int role) const
 {
-    if (Q_UNLIKELY(!index.isValid() || index.row() >= m_PointsView.size()))
-        return QVariant();
-
     const Qt::Axis axis = static_cast<Qt::Axis>(role);
-    return m_PointsView[index.row()].get(axis);
+    const qsizetype row = index.row();
+
+    return m_PointsView[row].get(axis);
 }
 
 void MathGraph::setFunction(MathFunction *function)
 {
     m_Function = function;
-    // allocating ranges for dimensions
     m_Ranges.reserve(m_Function->axesCount());
     m_Ranges.clear();
 
@@ -40,15 +28,9 @@ void MathGraph::setFunction(MathFunction *function)
         m_Ranges.emplace_back(-1, 1, axis.name);
     }
 
-    m_PointsModel = new MathGraphViewModel(m_Points);
+    m_PointsModel = new MathPointViewModel(m_Points, this);
 
     emit rangesChanged();
-}
-
-void MathGraph::setStep(const qreal step)
-{
-    m_Step = step;
-    emit stepChanged();
 }
 
 void MathGraph::setRange(const qsizetype i, const QPointF &range)
@@ -58,17 +40,31 @@ void MathGraph::setRange(const qsizetype i, const QPointF &range)
 }
 void MathGraph::setRange(const QString &axis, const QPointF &range)
 {
+    const qsizetype i = rangeIndex(axis);
+
+    if (Q_LIKELY(i != -1)) {
+        if (m_Ranges[i] == range)
+            return;
+        setRange(i, range);
+        emit rangesChanged();
+    }
+}
+
+qsizetype MathGraph::rangeIndex(const QString &axis) const
+{
     const auto &it = std::find(m_Ranges.cbegin(), m_Ranges.cend(), axis);
-    const qsizetype i = std::distance(m_Ranges.cbegin(), it);
+    return (Q_LIKELY(it != m_Ranges.cend())) ? std::distance(m_Ranges.cbegin(), it) : -1;
+}
 
-    setRange(i, range);
-
-    emit rangesChanged();
+MathRange MathGraph::range(const QString &axis) const
+{
+    const qsizetype i = rangeIndex(axis);
+    return (Q_LIKELY(i != -1)) ? range(i) : MathRange{};
 }
 
 qsizetype MathGraph::rangeLength(const qsizetype i)
 {
-    const auto [start, end, name] = range(i);
+    const auto [start, end, axis] = range(i);
 
     if (Q_UNLIKELY(
             std::isnan(start) ||  //
@@ -89,29 +85,31 @@ void MathGraph::place(const qsizetype axisIndex, const bool includeMin, const bo
 {
     m_Timer.start();
 
-    const MathRange &range = m_Ranges[axisIndex];
+    const auto [min, max, axis] = m_Ranges[axisIndex];
 
-    const qreal modMin = includeMin ? range.min : range.min + m_Step;
-    const qreal modMax = includeMax ? range.max + m_Step : range.max;
-
-    reserve(rangeLength(axisIndex));
+    const qreal modMin = includeMin ? min : min + m_Step;
+    const qreal modMax = includeMax ? max + m_Step : max;
 
     const qreal oldAxis = m_Function->value(axisIndex);
 
-    m_PointsModel->startModelUpdate();
+    const qsizetype size = rangeLength(axisIndex);
+
+    reserve(size);
+
+    m_PointsModel->beginResetModel();
 
     for (qreal axisValue = modMin; axisValue < modMax; axisValue += m_Step) {
         m_Function->setValue(axisIndex, axisValue);
 
-        const qreal result = m_Function->result();
+        const qreal y = m_Function->result();
 
-        if (!std::isfinite(result) || std::isnan(result))
+        if (!std::isfinite(y) || std::isnan(y))
             continue;
 
-        m_Points.emplace_back(axisValue, result);
+        m_Points.emplace_back(axisValue, y);
     }
 
-    m_PointsModel->endModelUpdate();
+    m_PointsModel->endResetModel();
     m_Function->setValue(axisIndex, oldAxis);
 
     const qint64 msTime = m_Timer.elapsed();
@@ -128,21 +126,23 @@ void MathGraph::placeSurface(const bool includeMin, const bool includeMax)
     const qsizetype axisXIndex = m_Function->axisIndex("x");
     const qsizetype axisYIndex = m_Function->axisIndex("y");
 
-    const MathRange &rangeX = m_Ranges[axisXIndex];
-    const MathRange &rangeY = m_Ranges[axisYIndex];
+    const auto [minX, maxX, axisX] = range(axisXIndex);
+    const auto [minY, maxY, axisY] = range(axisYIndex);
 
-    const qreal modXMin = includeMin ? rangeX.min : rangeX.min + m_Step;
-    const qreal modYMin = includeMin ? rangeY.min : rangeY.min + m_Step;
+    const qreal modXMin = includeMin ? minX : minX + m_Step;
+    const qreal modYMin = includeMin ? minY : minY + m_Step;
 
-    const qreal modXMax = includeMax ? rangeX.max + m_Step : rangeX.max;
-    const qreal modYMax = includeMax ? rangeY.max + m_Step : rangeY.max;
-
-    reserve(rangeLength(axisXIndex) * rangeLength(axisYIndex));
+    const qreal modXMax = includeMax ? maxX + m_Step : maxX;
+    const qreal modYMax = includeMax ? maxY + m_Step : maxY;
 
     const qreal oldXAxis = m_Function->value(axisXIndex);
     const qreal oldYAxis = m_Function->value(axisYIndex);
 
-    m_PointsModel->startModelUpdate();
+    const qsizetype size = rangeLength(axisXIndex) * rangeLength(axisYIndex);
+
+    reserve(size);
+
+    m_PointsModel->beginResetModel();
 
     for (qreal x = modXMin; x < modXMax; x += m_Step) {
         for (qreal z = modYMin; z < modYMax; z += m_Step) {
@@ -158,7 +158,7 @@ void MathGraph::placeSurface(const bool includeMin, const bool includeMax)
         }
     }
 
-    m_PointsModel->endModelUpdate();
+    m_PointsModel->endResetModel();
 
     m_Function->setValue(axisXIndex, oldXAxis);
     m_Function->setValue(axisYIndex, oldYAxis);
@@ -184,16 +184,15 @@ void MathGraph::clear()
         range.max = 10.;
     }
 
-    m_PointsModel->startModelUpdate();
+    m_PointsModel->beginResetModel();
     m_Points.clear();
-    m_PointsModel->endModelUpdate();
+    m_PointsModel->endResetModel();
 
     const qint64 msTime = m_Timer.elapsed();
     const qint64 nsTime = m_Timer.nsecsElapsed();
 
     qInfo() << "Clearing took: " << msTime << "ms " << nsTime << "ns";
 
-    emit stepChanged();
     emit rangesChanged();
     emit pointsChanged();
 }
@@ -236,10 +235,9 @@ void MathGraph::fromJson(const QJsonObject &object)
         qWarning() << "Range axes are not the same size";
     }
 
-    // prepare mem for graph points
-    reserve(points.size());
+    m_PointsModel->beginResetModel();
 
-    m_PointsModel->startModelUpdate();
+    reserve(points.size());
 
     MathPoint point;
     for (QJsonValueConstRef value : points) {
@@ -247,14 +245,13 @@ void MathGraph::fromJson(const QJsonObject &object)
         m_Points.emplace_back(std::move(point));
     }
 
-    m_PointsModel->endModelUpdate();
+    m_PointsModel->endResetModel();
 
     const qint64 msTime = m_Timer.elapsed();
     const qint64 nsTime = m_Timer.nsecsElapsed();
 
     qInfo() << "fromJson took: " << msTime << "ms " << nsTime << "ns";
 
-    emit stepChanged();
     emit rangesChanged();
     emit pointsChanged();
 }

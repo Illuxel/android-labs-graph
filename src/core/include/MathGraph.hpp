@@ -9,13 +9,14 @@
 
 class MathFunction;
 
-class MathGraphViewModel : public QAbstractListModel
+class MathPointViewModel : public QAbstractListModel
 {
 public:
-    MathGraphViewModel(std::vector<MathPoint> &points, QObject *parent = Q_NULLPTR);
+    using Base = QAbstractListModel;
+    using Base::beginResetModel;
+    using Base::endResetModel;
 
-    void startModelUpdate();
-    void endModelUpdate();
+    MathPointViewModel(std::vector<MathPoint> &points, QObject *parent = Q_NULLPTR);
 
     inline QHash<int, QByteArray> roleNames() const override
     {
@@ -37,32 +38,35 @@ class MathGraph : public IJsonObjectInterface
 
     Q_PROPERTY(MathFunction *mathFunc WRITE setFunction);
 
-    Q_PROPERTY(qreal step READ step WRITE setStep NOTIFY stepChanged);
-    Q_PROPERTY(RangesType ranges READ ranges NOTIFY rangesChanged);
-    Q_PROPERTY(PointsType points READ points NOTIFY pointsChanged);
-    Q_PROPERTY(ModelViewType *model READ model NOTIFY pointsChanged);
+    Q_PROPERTY(qreal step MEMBER m_Step NOTIFY stepChanged);
+
+    Q_PROPERTY(RangeListType ranges MEMBER m_Ranges NOTIFY rangesChanged);
+    Q_PROPERTY(PointListType points MEMBER m_Points NOTIFY pointsChanged);
+    Q_PROPERTY(PointsModelType *model MEMBER m_PointsModel NOTIFY pointsChanged);
 
 public:
-    using RangesType = std::vector<MathRange>;
-    using PointsType = std::vector<MathPoint>;
-    using ModelViewType = MathGraphViewModel;
+    using RangeListType = std::vector<MathRange>;
+    using PointListType = std::vector<MathPoint>;
+    using PointsModelType = MathPointViewModel;
 
     void setFunction(MathFunction *function);
-
-    Q_INVOKABLE void setStep(const qreal step);
 
     Q_INVOKABLE void setRange(const qsizetype index, const QPointF &range);
     Q_INVOKABLE void setRange(const QString &axis, const QPointF &range);
 
+    Q_INVOKABLE qsizetype rangeIndex(const QString &axis) const;
+
+    Q_INVOKABLE inline MathRange range(const qsizetype index) const { return m_Ranges[index]; }
+    Q_INVOKABLE MathRange range(const QString &axis) const;
+
     Q_INVOKABLE qsizetype rangeLength(const qsizetype index);
 
     inline qreal step() const { return m_Step; }
-    inline MathRange range(const qsizetype index) const { return m_Ranges[index]; }
 
-    inline RangesType ranges() const { return m_Ranges; }
-    inline PointsType points() const { return m_Points; }
+    inline RangeListType ranges() const { return m_Ranges; }
+    inline PointListType points() const { return m_Points; }
 
-    inline ModelViewType *model() const { return m_PointsModel; }
+    inline PointsModelType *model() const { return m_PointsModel; }
 
     /** Places function on 2D graph where XY is range */
     Q_INVOKABLE void place(const qsizetype axisIndex, const bool includeStart, const bool includeEnd);
@@ -97,7 +101,7 @@ private:
 
     MathFunction *m_Function;
 
-    RangesType m_Ranges;
-    PointsType m_Points;
-    ModelViewType *m_PointsModel;
+    RangeListType m_Ranges;
+    PointListType m_Points;
+    PointsModelType *m_PointsModel;
 };
