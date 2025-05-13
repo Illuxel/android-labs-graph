@@ -135,10 +135,7 @@ ScrollView {
                             notation: DoubleValidator.StandardNotation
                         }
 
-                        onTextEdited: {
-                            const i = app.mathFunc.axisIndex(name);
-                            app.mathFunc.setValue(i, parseFloat(text));
-                        }
+                        onEditingFinished: app.mathFunc.setValue(name, parseFloat(text))
                     }
                 }
             }
@@ -192,10 +189,7 @@ ScrollView {
                             notation: DoubleValidator.StandardNotation
                         }
 
-                        onTextEdited: {
-                            const i = app.mathFunc.varIndex(name);
-                            app.mathFunc.setValue(i, parseFloat(text));
-                        }
+                        onEditingFinished: app.mathFunc.setValue(name, parseFloat(text))
                     }
                 }
             }

@@ -293,11 +293,23 @@ ApplicationWindow {
 
                 MenuItem {
                     text: qsTr("Зберегти")
-                    onTriggered: app.saveManager.save("function")
+                    onTriggered: {
+                        if (app.saveManager.save("function")) {
+                            app.showInfoDialog(qsTr("Функцію збережено"));
+                        } else {
+                            app.showErrorDialog(qsTr("Помилка при збереженні функції"));
+                        }
+                    }
                 }
                 MenuItem {
                     text: qsTr("Відкрити")
-                    onTriggered: app.saveManager.load("function")
+                    onTriggered: {
+                        if (app.saveManager.load("function")) {
+                            app.showInfoDialog(qsTr("Функцію завантажено"));
+                        } else {
+                            app.showErrorDialog(qsTr("Помилка при завантаженні функції"));
+                        }
+                    }
                 }
                 MenuSeparator {}
 
@@ -312,11 +324,23 @@ ApplicationWindow {
 
                 MenuItem {
                     text: qsTr("Зберегти")
-                    onTriggered: app.saveManager.save("graph")
+                    onTriggered: {
+                        if (app.saveManager.save("graph")) {
+                            app.showInfoDialog(qsTr("Графік збережено"));
+                        } else {
+                            app.showErrorDialog(qsTr("Помилка при збереженні графіку"));
+                        }
+                    }
                 }
                 MenuItem {
                     text: qsTr("Відкрити")
-                    onTriggered: app.saveManager.load("graph")
+                    onTriggered: {
+                        if (app.saveManager.load("graph")) {
+                            app.showInfoDialog(qsTr("Графік завантажено"));
+                        } else {
+                            app.showErrorDialog(qsTr("Помилка при завантаженні графіку"));
+                        }
+                    }
                 }
 
                 MenuSeparator {}
