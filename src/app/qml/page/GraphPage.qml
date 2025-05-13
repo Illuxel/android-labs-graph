@@ -315,7 +315,7 @@ ScrollView {
                         required property real pointZ
 
                         readOnly: true
-                        placeholderText: "y: " + pointY + " [x:" + pointX + " z:" + pointZ + "]"
+                        text: "y: " + pointY + " [x:" + pointX + " z:" + pointZ + "]"
 
                         width: resultList.width
                         height: 35
