@@ -40,8 +40,8 @@ public:
     Q_INVOKABLE QString name(const qsizetype i) const;
 
     qsizetype index(const QAnyStringView name) const;
-    Q_INVOKABLE qsizetype axisIndex(const QAnyStringView name) const;
-    Q_INVOKABLE qsizetype varIndex(const QAnyStringView name) const;
+    Q_INVOKABLE qsizetype axisIndex(const QString &name) const;
+    Q_INVOKABLE qsizetype varIndex(const QString &name) const;
 
     /** Calculates a result of a function */
     Q_INVOKABLE qreal result();

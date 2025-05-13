@@ -29,6 +29,8 @@ void MathFunction::setValue(const QString &name, const qreal newValue)
     const qsizetype i = index(name);
 
     if (Q_LIKELY(i != -1)) {
+        if (m_Inputs[i] == newValue)
+            return;
         setValue(i, newValue);
         emit inputsChanged();
     }
@@ -49,13 +51,13 @@ qsizetype MathFunction::index(const QAnyStringView name) const
     const auto &it = std::find(m_Inputs.cbegin(), m_Inputs.cend(), name);
     return (Q_LIKELY(it != m_Inputs.cend())) ? std::distance(m_Inputs.cbegin(), it) : -1;
 }
-qsizetype MathFunction::axisIndex(const QAnyStringView name) const
+qsizetype MathFunction::axisIndex(const QString &name) const
 {
     const auto &axesOnly = axes();
     const auto &it = std::find(axesOnly.cbegin(), axesOnly.cend(), name);
     return (Q_LIKELY(it != axesOnly.cend())) ? std::distance(axesOnly.cbegin(), it) : -1;
 }
-qsizetype MathFunction::varIndex(const QAnyStringView name) const
+qsizetype MathFunction::varIndex(const QString &name) const
 {
     const auto &varsOnly = vars();
     const auto &it = std::find(varsOnly.cbegin(), varsOnly.cend(), name);
@@ -113,7 +115,6 @@ void MathFunction::fromJson(const QJsonObject &object)
     const QJsonArray &axes = object["axes"].toArray();
     const QJsonArray &vars = object["vars"].toArray();
 
-    // prepare mem for vars
     reserve(axes.size() + vars.size());
 
     MathInput input;
