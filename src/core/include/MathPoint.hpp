@@ -8,9 +8,9 @@ struct MathPoint
     QML_STRUCTURED_VALUE
     QML_NAMED_ELEMENT(mathPoint)
 
-    Q_PROPERTY(qreal pointX MEMBER x REQUIRED)
-    Q_PROPERTY(qreal pointY MEMBER y REQUIRED)
-    Q_PROPERTY(qreal pointZ MEMBER z REQUIRED)
+    Q_PROPERTY(qreal pointX MEMBER x REQUIRED);
+    Q_PROPERTY(qreal pointY MEMBER y REQUIRED);
+    Q_PROPERTY(qreal pointZ MEMBER z REQUIRED);
 
 public:
     qreal x;
@@ -57,11 +57,15 @@ public:
             return y;
         case Qt::ZAxis:
             return z;
-        default:
-            return 0.;
         }
     }
 
     void toJson(QJsonObject &object) const;
     void fromJson(const QJsonObject &object);
+
+    inline bool operator==(const MathPoint &other) const
+    {
+        return qFuzzyCompare(x, other.x) && qFuzzyCompare(y, other.y) && qFuzzyCompare(z, other.z);
+    }
+    bool operator!=(const MathPoint &other) const { return !(*this == other); }
 };
