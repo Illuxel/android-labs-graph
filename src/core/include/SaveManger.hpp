@@ -2,29 +2,33 @@
 
 #include <QtQmlIntegration>
 
-class MathFunction;
+class IJsonObjectInterface;
 
-class SaveManager : public QObject {
-  Q_OBJECT
-  QML_ELEMENT
-  Q_PROPERTY(
-      QUrl filePath MEMBER m_FilePath WRITE setFilePath NOTIFY filePathChanged)
-  Q_PROPERTY(MathFunction *functionObject MEMBER m_Function WRITE setFunction)
+class SaveManager : public QObject
+{
+    Q_OBJECT
+    QML_ELEMENT
+
+    Q_PROPERTY(QUrl folderPath MEMBER m_FolderPath);
+    Q_PROPERTY(ObjectInterfacesType objects MEMBER m_JsonObjects);
 
 public:
-  using QObject::QObject;
+    using QObject::QObject;
+    using ObjectInterfacesType = std::vector<IJsonObjectInterface *>;
 
-  void setFunction(MathFunction *function) { m_Function = function; }
-  void setFilePath(const QUrl &fileName) { m_FilePath = fileName; }
+    Q_INVOKABLE bool save(const QString &objectName);
+    Q_INVOKABLE bool load(const QString &objectName);
 
-  Q_INVOKABLE bool save();
-  Q_INVOKABLE bool load();
+    Q_INVOKABLE bool saveAll();
+    Q_INVOKABLE bool loadAll();
 
-signals:
-  void filePathChanged();
+    Q_INVOKABLE bool isFolderValid() const { return m_FolderPath.isValid(); }
 
 private:
-  QUrl m_FilePath;
-  QElapsedTimer m_Timer;
-  MathFunction *m_Function;
+    IJsonObjectInterface *interface(const QAnyStringView objectName) const;
+
+private:
+    QElapsedTimer m_Timer;
+    QUrl m_FolderPath;
+    ObjectInterfacesType m_JsonObjects;
 };

@@ -12,13 +12,23 @@ set( THEME_CONFIGS
 
 set( QML_SOURCES
 
-    qml/js/utils.js
     qml/MainWindow.qml
-    qml/page/FunctionPage.qml
     qml/page/ProfilePage.qml
+    qml/page/SettingsPage.qml
+    qml/page/FunctionPage.qml
+    qml/page/GraphPage.qml
+    qml/graph/LinesGraph.qml
+    qml/graph/ScatterGraph.qml
+    qml/graph/Scatter3DGraph.qml
+    qml/graph/Surface3DGraph.qml
+)
+
+set( INCLUDES
 )
 
 set( SOURCES
+    ${INCLUDES}
+
     src/main.cpp
 )
 
@@ -30,7 +40,10 @@ set( APP_NAME "labs.app" )
 
 qt_add_executable( ${APP_NAME} ${SOURCES} MANUAL_FINALIZATION )
 
-target_link_libraries( ${APP_NAME} PUBLIC Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Graphs labs.core labs.coreplugin )
+target_include_directories( ${APP_NAME}
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+)
+target_link_libraries( ${APP_NAME} PUBLIC Qt6::OpenGL Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Graphs labs.core labs.coreplugin )
 
 set_target_properties( ${APP_NAME} PROPERTIES
     WIN32_EXECUTABLE TRUE

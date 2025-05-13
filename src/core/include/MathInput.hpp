@@ -2,33 +2,27 @@
 
 #include <QtQmlIntegration>
 
-struct MathInput {
-
-  Q_GADGET
-  QML_STRUCTURED_VALUE
-  QML_NAMED_ELEMENT(mathInput)
-  Q_PROPERTY(QString valueName READ getValueName WRITE setValueName REQUIRED)
-  Q_PROPERTY(qreal value READ getValue WRITE setValue REQUIRED)
+struct MathInput
+{
+    Q_GADGET
+    QML_STRUCTURED_VALUE
+    QML_NAMED_ELEMENT(mathInput)
+    Q_PROPERTY(qreal value MEMBER value REQUIRED)
+    Q_PROPERTY(QChar name MEMBER name REQUIRED)
 
 public:
-  QString name;
-  qreal value;
+    qreal value;
+    QChar name;
 
-  MathInput() {}
-  MathInput(const QStringView name, const qreal value)
-      : name(name), value(value) {}
+    MathInput() {}
+    MathInput(const qreal value, const QChar name)
+        : value(value)
+        , name(name)
+    {}
 
-  void setValueName(const QString &name) { this->name = name; }
-  void setValue(const qreal value) { this->value = value; }
+    void toJson(QJsonObject &object) const;
+    void fromJson(const QJsonObject &object);
 
-  inline QString getValueName() const { return name; }
-  inline qreal getValue() const { return value; }
-
-  void toJson(QJsonObject &object) const;
-  void fromJson(const QJsonObject &object);
-
-  bool operator==(const QStringView name) const { return this->name == name; }
-  bool operator==(const MathInput &other) const {
-    return value == other.value && name == other.name;
-  }
+    bool operator==(const MathInput &other) const { return name == other.name; }
+    bool operator==(const QAnyStringView other) const { return name == other; }
 };

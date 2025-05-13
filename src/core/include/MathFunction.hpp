@@ -1,82 +1,66 @@
 #pragma once
 
+#include "JsonObjectInterface.hpp"
+
 #include "MathInput.hpp"
-#include "MathResult.hpp"
 
-class MathFunction : public QObject {
+class MathFunction : public IJsonObjectInterface
+{
+    Q_OBJECT
+    QML_ELEMENT
 
-  Q_OBJECT
-  QML_ELEMENT
-  Q_PROPERTY(std::vector<QString> names WRITE setNames CONSTANT);
+    Q_PROPERTY(std::vector<QString> inputNames WRITE setInputNames);
 
-  Q_PROPERTY(qsizetype currentIndex MEMBER m_CurrentIndex WRITE setVariableIndex
-                 NOTIFY currentIndexChanged);
-
-  Q_PROPERTY(qreal step MEMBER m_Step WRITE setStep NOTIFY stepChanged);
-  Q_PROPERTY(QPointF range MEMBER m_Range WRITE setRange NOTIFY rangeChanged);
-
-  Q_PROPERTY(MathInputs vars MEMBER m_Vars NOTIFY varsChanged);
-  Q_PROPERTY(MathResults results MEMBER m_Results NOTIFY resultsChanged);
+    Q_PROPERTY(InputsType axes READ axes NOTIFY inputsChanged);
+    Q_PROPERTY(InputsType vars READ vars NOTIFY inputsChanged);
 
 public:
-  using QObject::QObject;
-  using MathInputs = std::vector<MathInput>;
-  using MathResults = std::vector<MathResult>;
+    using InputsType = std::vector<MathInput>;
 
-  void setNames(const std::vector<QString> &names);
+    Q_INVOKABLE void setInputNames(const std::vector<QString> &names);
 
-  Q_INVOKABLE void setStep(const qreal step);
-  Q_INVOKABLE void setRange(const QPointF &range);
+    /** Sets value of the input by index without emit signal */
+    Q_INVOKABLE void setValue(const qsizetype index, const qreal newValue);
+    /** Sets value of the input by name emiting signal */
+    Q_INVOKABLE void setValue(const QString &name, const qreal newValue);
 
-  Q_INVOKABLE void setVariableIndex(const qsizetype index);
+    inline qsizetype axesCount() const { return m_AxesSize; }
 
-  void setValue(const qsizetype index, const qreal newValue);
-  Q_INVOKABLE void setValue(const QString &name, const qreal newValue);
+    /** Returns only axes */
+    inline InputsType axes() const { return {m_Inputs.cbegin(), m_Inputs.cbegin() + m_AxesSize}; }
+    /** Returns only user inputs */
+    inline InputsType vars() const { return {m_Inputs.cbegin() + m_AxesSize, m_Inputs.cend()}; }
 
-  inline qreal value(const qsizetype index) const;
+    /** Returns input value by index */
+    inline qreal value(const qsizetype i) const { return m_Inputs[i].value; }
+    /** Returns input value by input name*/
+    Q_INVOKABLE qreal value(const QString &name) const;
 
-  Q_INVOKABLE qreal value(const QString &name) const;
-  Q_INVOKABLE QString name(const qsizetype index) const;
+    /** Returns input name by index in array */
+    Q_INVOKABLE QString name(const qsizetype i) const;
 
-  inline qsizetype currentIndex() const { return m_CurrentIndex; }
+    qsizetype index(const QAnyStringView name) const;
+    Q_INVOKABLE qsizetype axisIndex(const QAnyStringView name) const;
+    Q_INVOKABLE qsizetype varIndex(const QAnyStringView name) const;
 
-  inline qreal step() const { return m_Step; }
-  inline QPointF range() const { return m_Range; }
+    /** Calculates a result of a function */
+    Q_INVOKABLE qreal result();
 
-  inline MathInputs vars() const { return m_Vars; }
-  inline MathResults results() const { return m_Results; }
+    Q_INVOKABLE void clear();
 
-  std::vector<qreal> points() const;
-
-  Q_INVOKABLE qreal calculate();
-  Q_INVOKABLE qint64 calculateRange(const bool start, const bool end);
-
-  void toJson(QJsonObject &object) const;
-  void fromJson(const QJsonObject &object);
+    // Json Interface
+    QAnyStringView objectName() const override { return "function"; }
+    void toJson(QJsonObject &object) const override;
+    void fromJson(const QJsonObject &object) override;
+    // Json Interface
 
 private:
-  qsizetype index(const QStringView name) const;
-
-  void reserve(const qsizetype count);
-  void reserveResult(const qsizetype count);
+    void reserve(const qsizetype count);
 
 signals:
-  void currentIndexChanged();
-
-  void stepChanged();
-  void rangeChanged();
-
-  void varsChanged();
-  void resultsChanged();
+    void inputsChanged();
 
 private:
-  qsizetype m_CurrentIndex = -1;
-
-  qreal m_Step;
-  QPointF m_Range;
-
-  QElapsedTimer m_Timer;
-
-  MathInputs m_Vars;
-  MathResults m_Results;
+    qsizetype m_AxesSize;
+    InputsType m_Inputs;
 };

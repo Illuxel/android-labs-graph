@@ -1,187 +1,132 @@
 #include "MathFunction.hpp"
 
-void MathFunction::setNames(const std::vector<QString> &names) {
+void MathFunction::setInputNames(const std::vector<QString> &names)
+{
+    constexpr std::array<QChar, 3> axes = {'x', 'y', 'z'};
 
-  reserve(names.size());
+    m_AxesSize = std::count_if(
+        names.cbegin(),
+        names.cend(), //
+        [&axes](const QAnyStringView view) {
+            return std::find(axes.cbegin(), axes.cend(), view) != axes.cend();
+        });
 
-  for (const QStringView input : names) {
-    m_Vars.emplace_back(input, 0.);
-  }
-}
+    reserve(names.size());
 
-void MathFunction::setVariableIndex(const qsizetype i) {
-  m_CurrentIndex = i;
-  emit currentIndexChanged();
-}
-
-void MathFunction::setStep(const qreal step) {
-  m_Step = step;
-  emit stepChanged();
-}
-void MathFunction::setRange(const QPointF &range) {
-  m_Range = range;
-  emit rangeChanged();
-}
-
-void MathFunction::reserve(const qsizetype count) {
-  m_Vars.clear();
-  m_Vars.reserve(count);
-}
-void MathFunction::reserveResult(const qsizetype count) {
-  m_Results.clear();
-  m_Results.reserve(count);
-}
-
-void MathFunction::setValue(const qsizetype i, const qreal newValue) {
-  m_Vars[i].value = newValue;
-}
-void MathFunction::setValue(const QString &name, const qreal newValue) {
-
-  const qsizetype i = index(name);
-
-  if (Q_LIKELY(i != -1)) {
-    setValue(i, newValue);
-  }
-}
-
-QString MathFunction::name(const qsizetype i) const { return m_Vars[i].name; }
-
-qreal MathFunction::value(const qsizetype i) const { return m_Vars[i].value; }
-qreal MathFunction::value(const QString &name) const {
-  const qsizetype i = index(name);
-  return (Q_LIKELY(i != -1)) ? value(i) : qreal();
-}
-
-qsizetype MathFunction::index(const QStringView name) const {
-  const auto &it = std::find(m_Vars.cbegin(), m_Vars.cend(), name);
-  return it != m_Vars.cend() ? std::distance(m_Vars.cbegin(), it) : -1;
-}
-
-void MathFunction::toJson(QJsonObject &object) const {
-
-  object["step"] = m_Step;
-  object["variable"] = m_CurrentIndex;
-  object["range"] = QJsonArray{m_Range.x(), m_Range.y()};
-
-  QJsonArray vars;
-  QJsonArray results;
-
-  QJsonObject varObj;
-  QJsonObject resultObj;
-
-  for (const MathInput &var : m_Vars) {
-    var.toJson(varObj);
-    vars.push_back(varObj);
-  }
-
-  for (const MathResult &result : m_Results) {
-    result.toJson(resultObj);
-    results.push_back(resultObj);
-  }
-
-  object["vars"] = std::move(vars);
-  object["results"] = std::move(results);
-}
-
-void MathFunction::fromJson(const QJsonObject &object) {
-
-  m_Timer.start();
-
-  m_Step = object["step"].toDouble(0.5);
-  m_CurrentIndex = object["variable"].toInteger(-1);
-
-  {
-    const QJsonArray &range = object["range"].toArray({0., 1.});
-    m_Range.setX(range[0].toDouble());
-    m_Range.setY(range[1].toDouble());
-  }
-
-  const QJsonArray &inputs = object["inputs"].toArray();
-  const QJsonArray &results = object["results"].toArray();
-
-  // prepare mem for vars and graph
-  reserve(inputs.size());
-  reserveResult(results.size());
-
-  {
-    MathInput var;
-
-    for (QJsonValueConstRef value : inputs) {
-      var.fromJson(value.toObject());
-      m_Vars.emplace_back(std::move(var));
+    for (const QStringView name : names) {
+        m_Inputs.emplace_back(0., name[0]);
     }
-  }
 
-  {
-    MathResult result;
+    emit inputsChanged();
+}
 
-    for (QJsonValueConstRef value : results) {
-      result.fromJson(value.toObject());
-      m_Results.emplace_back(std::move(result));
+void MathFunction::setValue(const qsizetype i, const qreal newValue)
+{
+    m_Inputs[i].value = newValue;
+}
+void MathFunction::setValue(const QString &name, const qreal newValue)
+{
+    const qsizetype i = index(name);
+
+    if (Q_LIKELY(i != -1)) {
+        setValue(i, newValue);
+        emit inputsChanged();
     }
-  }
-
-  const qint64 msTime = m_Timer.elapsed();
-  const qint64 nsTime = m_Timer.nsecsElapsed();
-
-  qDebug() << "fromJson took: " << msTime << "ms " << nsTime << "ns";
-
-  emit stepChanged();
-  emit rangeChanged();
-
-  emit varsChanged();
-  emit resultsChanged();
 }
 
-qreal MathFunction::calculate() {
-
-  const qreal x = value(0);
-  const qreal y = value(1);
-  const qreal a = value(2);
-
-  return (std::sin(std::pow(x, 3) + 6) - std::sin(y - a)) /
-             std::log(std::pow(x, 4)) -
-         2 * std::pow(std::sin(x), 5);
+qreal MathFunction::value(const QString &name) const
+{
+    const qsizetype i = index(name);
+    return (Q_LIKELY(i != -1)) ? value(i) : qreal();
+}
+QString MathFunction::name(const qsizetype i) const
+{
+    return m_Inputs[i].name;
 }
 
-qsizetype getRangeSize(const qreal x, const qreal y, const qreal step) {
-  if (std::isnan(x) ||    //
-      std::isnan(y) ||    //
-      std::isnan(step) || //
-      y >= x || step <= 0)
-    return 0;
-  return static_cast<qsizetype>(std::ceil((y - x) / step)) + 1;
+qsizetype MathFunction::index(const QAnyStringView name) const
+{
+    const auto &it = std::find(m_Inputs.cbegin(), m_Inputs.cend(), name);
+    return (Q_LIKELY(it != m_Inputs.cend())) ? std::distance(m_Inputs.cbegin(), it) : -1;
+}
+qsizetype MathFunction::axisIndex(const QAnyStringView name) const
+{
+    const auto &axesOnly = axes();
+    const auto &it = std::find(axesOnly.cbegin(), axesOnly.cend(), name);
+    return (Q_LIKELY(it != axesOnly.cend())) ? std::distance(axesOnly.cbegin(), it) : -1;
+}
+qsizetype MathFunction::varIndex(const QAnyStringView name) const
+{
+    const auto &varsOnly = vars();
+    const auto &it = std::find(varsOnly.cbegin(), varsOnly.cend(), name);
+    return (Q_LIKELY(it != varsOnly.cend())) ? std::distance(varsOnly.cbegin(), it) : -1;
 }
 
-qint64 MathFunction::calculateRange(const bool start, const bool end) {
+void MathFunction::reserve(const qsizetype count)
+{
+    m_Inputs.reserve(count);
+    m_Inputs.clear();
+}
 
-  m_Timer.start();
+qreal MathFunction::result()
+{
+    const qreal x = value(0);
+    const qreal y = value(1);
+    const qreal a = value(2);
 
-  {
-    const qsizetype rangeSize =
-        getRangeSize(m_Range.x(), m_Range.y(), m_Step); // precalc size
+    // z= (cos(((x)^3)+6)-sin(y-a))/(ln(x))^4)-2*((sin(x))^5)
 
-    reserveResult(rangeSize);
-  }
+    return (std::sin(std::pow(x, 3) + 6) - std::sin(y - a)) / std::log(std::pow(x, 4))
+           - 2 * std::pow(std::sin(x), 5);
+}
 
-  const qreal modX = start ? m_Range.x() : m_Range.x() + m_Step;
-  const qreal modY = end ? m_Range.y() + m_Step : m_Range.y();
+void MathFunction::clear()
+{
+    for (MathInput &input : m_Inputs) {
+        input.value = 0.;
+    }
 
-  const qreal oldValue = value(currentIndex()); // save old input value
+    emit inputsChanged();
+}
 
-  for (qreal x = modX; x < modY; x += m_Step) {
-    setValue(currentIndex(), x);
-    m_Results.emplace_back(x, calculate());
-  }
+void MathFunction::toJson(QJsonObject &object) const
+{
+    QJsonArray varsArray;
+    QJsonObject varObj;
 
-  setValue(currentIndex(), oldValue); // restore old value
+    for (const MathInput &axis : axes()) {
+        axis.toJson(varObj);
+        varsArray.push_back(std::move(varObj));
+    }
 
-  const qint64 msTime = m_Timer.elapsed();
-  const qint64 nsTime = m_Timer.nsecsElapsed();
+    object["axes"] = std::move(varsArray);
 
-  qDebug() << "Calculation took: " << msTime << "ms " << nsTime << "ns";
+    for (const MathInput &var : vars()) {
+        var.toJson(varObj);
+        varsArray.push_back(std::move(varObj));
+    }
 
-  emit resultsChanged();
+    object["vars"] = std::move(varsArray);
+}
+void MathFunction::fromJson(const QJsonObject &object)
+{
+    const QJsonArray &axes = object["axes"].toArray();
+    const QJsonArray &vars = object["vars"].toArray();
 
-  return msTime;
+    // prepare mem for vars
+    reserve(axes.size() + vars.size());
+
+    MathInput input;
+
+    for (QJsonValueConstRef value : axes) {
+        input.fromJson(value.toObject());
+        m_Inputs.emplace_back(std::move(input));
+    }
+
+    for (QJsonValueConstRef value : vars) {
+        input.fromJson(value.toObject());
+        m_Inputs.emplace_back(std::move(input));
+    }
+
+    emit inputsChanged();
 }
