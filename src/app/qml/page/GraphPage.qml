@@ -3,7 +3,6 @@ import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 
 import labs.core 1.0
 
@@ -15,9 +14,12 @@ ScrollView {
 
     property Settings settings: Settings {
 
+        // Selects axis to be changed based on graph
         property alias currentAxisIndex: axesCombo.currentIndex
+        //
         property alias currentGraphIndex: graphsCombo.currentIndex
 
+        // Includes or excludes min/max in range
         property alias rangeStartInclude: rangeStartInclude.checked
         property alias rangeEndInclude: rangeEndInclude.checked
 
@@ -92,6 +94,16 @@ ScrollView {
                     Layout.fillWidth: true
                 }
 
+                Button {
+                    visible: false //app.mathGraph.model.count > 16000
+                    text: qsTr("Показати графік")
+                    font.pixelSize: app.headerTextSize
+                    font.bold: true
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Math.min(page.contentHeight, page.height * 0.50)
+                    onClicked: graphLoader.visible = !graphLoader.visible
+                }
+
                 // Async graph loader
                 Loader {
                     id: graphLoader
@@ -137,30 +149,27 @@ ScrollView {
                             spacing: 10
 
                             Label {
-
                                 text: qsTr("Мін/Макс ") + axis.toUpperCase() + ": "
                                 horizontalAlignment: Text.AlignHCenter
                                 Layout.fillWidth: true
                             }
 
                             TextField {
-                                id: rangeMinField
                                 placeholderText: qsTr("Мін ") + axis.toUpperCase() + " (" + min + ")"
                                 validator: DoubleValidator {
                                     notation: DoubleValidator.StandardNotation
                                 }
                                 Layout.fillWidth: true
-                                onTextEdited: app.mathGraph.setRange(axis, Qt.point(text, max))
+                                onEditingFinished: app.mathGraph.setRange(axis, Qt.point(parseFloat(text), max))
                             }
 
                             TextField {
-                                id: rangeMaxField
                                 placeholderText: qsTr("Макс ") + axis.toUpperCase() + " (" + max + ")"
                                 validator: DoubleValidator {
                                     notation: DoubleValidator.StandardNotation
                                 }
                                 Layout.fillWidth: true
-                                onTextEdited: app.mathGraph.setRange(axis, Qt.point(min, text))
+                                onEditingFinished: app.mathGraph.setRange(axis, Qt.point(min, parseFloat(text)))
                             }
                         }
                     }
@@ -181,7 +190,7 @@ ScrollView {
                             notation: DoubleValidator.StandardNotation
                         }
                         Layout.fillWidth: true
-                        onTextEdited: app.mathGraph.setStep(text)
+                        onTextEdited: app.mathGraph.step = text
                     }
                 }
 
@@ -210,7 +219,7 @@ ScrollView {
                             if (axesCombo.currentIndex != -1) {
                                 app.mathGraph.place(axesCombo.currentIndex, rangeStartInclude.checked, rangeEndInclude.checked); // const elapsedTime =
 
-                                if (app.settings.value("autoSaveGraph")) {
+                                if (app.settings.autoSaveGraph) {
                                     app.saveManager.save("graph");
                                 }
                                 if (showResultListCheck.checked) {
@@ -234,7 +243,7 @@ ScrollView {
                         onClicked: {
                             app.mathGraph.placeSurface(rangeStartInclude.checked, rangeEndInclude.checked); // const elapsedTime =
 
-                            if (app.settings.value("autoSaveGraph")) {
+                            if (app.settings.autoSaveGraph) {
                                 app.saveManager.save("graph");
                             }
                             if (showResultListCheck.checked) {

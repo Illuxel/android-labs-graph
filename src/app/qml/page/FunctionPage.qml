@@ -1,11 +1,8 @@
 pragma ComponentBehavior: Bound
-
-import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import QtQuick.Dialogs
 
 import labs.core 1.0
 
@@ -138,7 +135,10 @@ ScrollView {
                             notation: DoubleValidator.StandardNotation
                         }
 
-                        onTextEdited: app.mathFunc.setValue(name, text)
+                        onTextEdited: {
+                            const i = app.mathFunc.axisIndex(name);
+                            app.mathFunc.setValue(i, parseFloat(text));
+                        }
                     }
                 }
             }
@@ -192,7 +192,10 @@ ScrollView {
                             notation: DoubleValidator.StandardNotation
                         }
 
-                        onTextEdited: app.mathFunc.setValue(name, text)
+                        onTextEdited: {
+                            const i = app.mathFunc.varIndex(name);
+                            app.mathFunc.setValue(i, parseFloat(text));
+                        }
                     }
                 }
             }

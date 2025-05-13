@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtCore
-import QtQml
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
@@ -36,16 +35,31 @@ ApplicationWindow {
 
     // Application settings
     property Settings settings: Settings {
+        property alias x: app.x
+        property alias y: app.y
         property alias width: app.width
         property alias height: app.height
 
-        property alias x: app.x
-        property alias y: app.y
-
         property alias currentPageIndex: view.currentIndex
-        property alias currentFolderPath: app.folderDialog.currentFolder
+
+        // Stores ouput folder
+        property string currentFolderPath: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+
+        // Saves function automatically to a file
+        property bool autoSaveFunction: false
+        // Reads function from a file automatically
+        property bool autoLoadFunction: false
+
+        // Saves graph automatically to a file
+        property bool autoSaveGraph: false
+        // Reads graph from a file automatically
+        property bool autoLoadGraph: false
+
+        // Shows time took to calculate function range
+        property bool showElapsedTime: false
     }
 
+    // Show loading task
     property ProgressBar progressBar: ProgressBar {
         value: 0
         visible: value != 0
@@ -92,7 +106,8 @@ ApplicationWindow {
     property FolderDialog folderDialog: FolderDialog {
         title: qsTr("Виберіть куди будуть збережені файли")
         modality: Qt.ApplicationModal
-        currentFolder: app.settings.value("currentFolderPath", StandardPaths.writableLocation(StandardPaths.DocumentsLocation))
+        currentFolder: app.settings.currentFolderPath
+        onAccepted: app.settings.currentFolderPath = currentFolder
     }
 
     // Available pages
@@ -124,10 +139,13 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        if (app.saveManager.isFolderValid()) {
+        if (!app.saveManager.isFolderValid()) {
+            console.log("No folder specified");
+            app.folderDialog.open();
+        } else {
             console.log("Restoring files...");
 
-            if (app.settings.value("autoLoadFunction")) {
+            if (app.settings.autoLoadFunction) {
                 if (app.saveManager.load("function")) {
                     console.log("Function restored");
                 } else {
@@ -137,7 +155,7 @@ ApplicationWindow {
                 console.log("Skip function auto load");
             }
 
-            if (app.settings.value("autoLoadGraph")) {
+            if (app.settings.autoLoadGraph) {
                 if (app.saveManager.load("graph")) {
                     console.log("Graph restored");
                 } else {
@@ -148,9 +166,6 @@ ApplicationWindow {
             }
 
             console.log("Restoring ended...");
-        } else {
-            console.log("No folder specified");
-            app.folderDialog.open();
         }
     }
     Component.onDestruction: {}

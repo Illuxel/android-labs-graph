@@ -1,5 +1,4 @@
 pragma ComponentBehavior: Bound
-import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -10,25 +9,8 @@ ScrollView {
     anchors.fill: parent
     contentWidth: page.width
 
-    property Settings settings: Settings {
-        // Saves function automatically to a file
-        property alias autoSaveFunction: autoSaveFunctionCheck.checked
-        // Reads function from a file automatically
-        property alias autoLoadFunction: autoLoadFunctionCheck.checked
-
-        // Saves graph automatically to a file
-        property alias autoSaveGraph: autoSaveGraphCheck.checked
-        // Reads graph from a file automatically
-        property alias autoLoadGraph: autoLoadGraphCheck.checked
-
-        // Shows time took to calculate function range
-        //property alias showElapsedTime: showElapsedTimeCheck.checked
-    }
-
     Component.onCompleted: {}
-    Component.onDestruction: {
-        page.settings.sync();
-    }
+    Component.onDestruction: {}
 
     ScrollBar.vertical: ScrollBar {
         id: pageScroll
@@ -65,7 +47,7 @@ ScrollView {
                 RowLayout {
 
                     TextField {
-                        text: app.folderDialog.currentFolder
+                        text: app.settings.currentFolderPath
                         placeholderText: qsTr("Шлях до файлів")
                         readOnly: true
                         Layout.fillWidth: true
@@ -95,18 +77,20 @@ ScrollView {
                 anchors.fill: parent
 
                 CheckBox {
-                    id: autoSaveFunctionCheck
                     text: qsTr("Автоматично зберігати функцію")
+                    checked: app.settings.autoSaveFunction
                     ToolTip.text: text
                     ToolTip.visible: hovered
                     Layout.fillWidth: true
+                    onCheckedChanged: app.settings.autoSaveFunction = checked
                 }
                 CheckBox {
-                    id: autoLoadFunctionCheck
                     text: qsTr("Автоматично завантажувати функцію")
+                    checked: app.settings.autoLoadFunction
                     ToolTip.text: text
                     ToolTip.visible: hovered
                     Layout.fillWidth: true
+                    onCheckedChanged: app.settings.autoLoadFunction = checked
                 }
             }
         }
@@ -128,18 +112,20 @@ ScrollView {
                 anchors.fill: parent
 
                 CheckBox {
-                    id: autoSaveGraphCheck
                     text: qsTr("Автоматично зберігати графік")
+                    checked: app.settings.autoSaveGraph
                     ToolTip.text: text
                     ToolTip.visible: hovered
                     Layout.fillWidth: true
+                    onCheckedChanged: app.settings.autoSaveGraph = checked
                 }
                 CheckBox {
-                    id: autoLoadGraphCheck
                     text: qsTr("Автоматично завантажувати графік")
+                    checked: app.settings.autoLoadGraph
                     ToolTip.text: text
                     ToolTip.visible: hovered
                     Layout.fillWidth: true
+                    onCheckedChanged: app.settings.autoLoadGraph = checked
                 }
             }
         }
