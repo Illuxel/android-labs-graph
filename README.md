@@ -19,3 +19,7 @@
 ## Сторінка: Профіль розробника
 
 ![profile-page](docs/images/profile-page.png)
+
+## Збирання проєкту
+
+> Qt6.5 або вище
