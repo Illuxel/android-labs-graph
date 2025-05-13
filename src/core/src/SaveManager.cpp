@@ -36,7 +36,8 @@ bool SaveManager::save(const QString &objectName)
     const QJsonDocument doc(object);
     file.write(doc.toJson(QJsonDocument::JsonFormat::Compact));
 
-    qInfo() << "Saving file took: " << m_Timer.elapsed() << "ms " << m_Timer.nsecsElapsed() << "ns";
+    m_LastElapesedTimeMs = m_Timer.elapsed();
+    m_LastElapesedTimeNs = m_Timer.nsecsElapsed();
 
     return true;
 }
@@ -67,8 +68,8 @@ bool SaveManager::load(const QString &objectName)
         return false;
     }
 
-    qInfo() << "Loading file took: " << m_Timer.elapsed() << "ms " << m_Timer.nsecsElapsed()
-            << "ns";
+    m_LastElapesedTimeMs = m_Timer.elapsed();
+    m_LastElapesedTimeNs = m_Timer.nsecsElapsed();
 
     return true;
 }

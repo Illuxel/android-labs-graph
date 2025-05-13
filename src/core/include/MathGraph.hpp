@@ -77,6 +77,9 @@ public:
     /** Places function on graph and computes each entry in compute shader */
     Q_INVOKABLE void placeCompute(const bool includeStart, const bool includeEnd);
 
+    Q_INVOKABLE inline quint64 lastElapsedTimeMs() const { return m_LastElapesedTimeMs; }
+    Q_INVOKABLE inline quint64 lastElapsedTimeNs() const { return m_LastElapesedTimeNs; }
+
     /** Clears graph */
     Q_INVOKABLE void clear();
 
@@ -98,6 +101,7 @@ signals:
 private:
     QElapsedTimer m_Timer;
     qreal m_Step;
+    quint64 m_LastElapesedTimeMs, m_LastElapesedTimeNs;
 
     MathFunction *m_Function;
 

@@ -27,7 +27,9 @@ ScrollView {
         property alias showResultList: showResultListCheck.checked
     }
 
-    property ListModel graphsList: ListModel {
+    property MathGraph graph: app.mathGraph
+
+    property ListModel graphsModel: ListModel {
         ListElement {
             graphName: qsTr("Лінії")
             graphSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/graph/LinesGraph.qml"
@@ -88,14 +90,14 @@ ScrollView {
                 ComboBox {
                     id: graphsCombo
                     displayText: currentIndex != -1 ? graphsCombo.currentText : qsTr("Оберіть тип графіку...")
-                    model: page.graphsList
+                    model: page.graphsModel
                     textRole: "graphName"
                     valueRole: "graphSource"
                     Layout.fillWidth: true
                 }
 
                 Button {
-                    visible: false //app.mathGraph.model.count > 16000
+                    visible: false //graph.model.count > 16000
                     text: qsTr("Показати графік")
                     font.pixelSize: app.headerTextSize
                     font.bold: true
@@ -139,7 +141,7 @@ ScrollView {
                     spacing: 10
 
                     Repeater {
-                        model: app.mathGraph.ranges
+                        model: graph.ranges
 
                         delegate: ColumnLayout {
                             required property real min
@@ -160,7 +162,7 @@ ScrollView {
                                     notation: DoubleValidator.StandardNotation
                                 }
                                 Layout.fillWidth: true
-                                onEditingFinished: app.mathGraph.setRange(axis, Qt.point(parseFloat(text), max))
+                                onEditingFinished: graph.setRange(axis, Qt.point(parseFloat(text), max))
                             }
 
                             TextField {
@@ -169,7 +171,7 @@ ScrollView {
                                     notation: DoubleValidator.StandardNotation
                                 }
                                 Layout.fillWidth: true
-                                onEditingFinished: app.mathGraph.setRange(axis, Qt.point(min, parseFloat(text)))
+                                onEditingFinished: graph.setRange(axis, Qt.point(min, parseFloat(text)))
                             }
                         }
                     }
@@ -185,12 +187,12 @@ ScrollView {
                     }
 
                     TextField {
-                        placeholderText: qsTr("Інтервал") + " (" + app.mathGraph.step + ")"
+                        placeholderText: qsTr("Інтервал") + " (" + graph.step + ")"
                         validator: DoubleValidator {
                             notation: DoubleValidator.StandardNotation
                         }
                         Layout.fillWidth: true
-                        onTextEdited: app.mathGraph.step = text
+                        onTextEdited: graph.step = text
                     }
                 }
 
@@ -216,8 +218,10 @@ ScrollView {
                         Layout.preferredWidth: 1
 
                         onClicked: {
-                            if (axesCombo.currentIndex != -1) {
-                                app.mathGraph.place(axesCombo.currentIndex, rangeStartInclude.checked, rangeEndInclude.checked); // const elapsedTime =
+                            if (axesCombo.currentIndex == -1) {
+                                app.openErrorDialog(qsTr("Ви не обрали вісь"));
+                            } else {
+                                graph.place(axesCombo.currentIndex, rangeStartInclude.checked, rangeEndInclude.checked);
 
                                 if (app.settings.autoSaveGraph) {
                                     app.saveManager.save("graph");
@@ -225,11 +229,18 @@ ScrollView {
                                 if (showResultListCheck.checked) {
                                     pageScroll.setPosition(1.0 - pageScroll.size);
                                 }
-                                // if (app.settings.value("showElapsedTime")) {
-                                //     app.openInfoDialog(qsTr("Обчислювання зайняло: " + elapsedTime + "ms"));
-                                // }
-                            } else {
-                                app.openErrorDialog(qsTr("Ви не обрали вісь"));
+
+                                if (app.settings.showElapsedTime) {
+                                    const graphTimeMs = graph.lastElapsedTimeMs();
+                                    const graphTimeNs = graph.lastElapsedTimeNs();
+                                    const graphText = qsTr("Обчислювання графіку: ") + graphTimeMs + "ms " + graphTimeNs + "ns";
+
+                                    // const saveTimeMs = app.saveManager.lastElapsedTimeMs();
+                                    // const saveTimeNs = app.saveManager.lastElapsedTimeNs();
+                                    //const saveText = qsTr("Збереження: ") + saveTimeMs + "ms " + saveTimeNs + "ns";
+
+                                    app.showInfoDialog(graphText);
+                                }
                             }
                         }
                     }
@@ -241,7 +252,7 @@ ScrollView {
                         Layout.preferredWidth: 1
 
                         onClicked: {
-                            app.mathGraph.placeSurface(rangeStartInclude.checked, rangeEndInclude.checked); // const elapsedTime =
+                            graph.placeSurface(rangeStartInclude.checked, rangeEndInclude.checked);
 
                             if (app.settings.autoSaveGraph) {
                                 app.saveManager.save("graph");
@@ -249,9 +260,18 @@ ScrollView {
                             if (showResultListCheck.checked) {
                                 pageScroll.setPosition(1.0 - pageScroll.size);
                             }
-                            // if (app.settings.value("showElapsedTime")) {
-                            //     app.openInfoDialog(qsTr("Обчислювання зайняло: " + elapsedTime + "ms"));
-                            // }
+                            if (app.settings.showElapsedTime) {
+                                const graphTimeMs = graph.lastElapsedTimeMs();
+                                const graphTimeNs = graph.lastElapsedTimeNs();
+
+                                const graphText = qsTr("Обчислювання графіку: ") + graphTimeMs + "ms " + graphTimeNs + "ns";
+
+                                // const saveTimeMs = app.saveManager.lastElapsedTimeMs();
+                                // const saveTimeNs = app.saveManager.lastElapsedTimeNs();
+                                //const saveText = qsTr("Збереження: ") + saveTimeMs + "ms " + saveTimeNs + "ns";
+
+                                app.showInfoDialog(graphText);
+                            }
                         }
                     }
                 }
@@ -277,7 +297,7 @@ ScrollView {
         // List of function result
         GroupBox {
 
-            visible: showResultListCheck.checked && app.mathGraph.points.length != 0
+            visible: showResultListCheck.checked && graph.points.length != 0
 
             label: Label {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -300,7 +320,7 @@ ScrollView {
                     interactive: true
 
                     spacing: 10
-                    model: app.mathGraph.points
+                    model: graph.points
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: Math.min(contentHeight, page.height * 0.65)

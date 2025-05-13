@@ -129,5 +129,28 @@ ScrollView {
                 }
             }
         }
+
+        GroupBox {
+            label: Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: qsTr("Продуктивність")
+                font.pointSize: app.contentTextSize
+                font.bold: true
+            }
+
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+
+            CheckBox {
+                text: qsTr("Показати продуктівність")
+                checked: app.settings.showElapsedTime
+                ToolTip.text: text
+                ToolTip.visible: hovered
+                Layout.fillWidth: true
+                onCheckedChanged: app.settings.showElapsedTime = checked
+            }
+        }
     }
 }

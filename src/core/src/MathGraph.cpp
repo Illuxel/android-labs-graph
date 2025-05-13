@@ -110,12 +110,11 @@ void MathGraph::place(const qsizetype axisIndex, const bool includeMin, const bo
     }
 
     m_PointsModel->endResetModel();
+
     m_Function->setValue(axisIndex, oldAxis);
 
-    const qint64 msTime = m_Timer.elapsed();
-    const qint64 nsTime = m_Timer.nsecsElapsed();
-
-    qInfo() << "Calculation took: " << msTime << "ms " << nsTime << "ns";
+    m_LastElapesedTimeMs = m_Timer.elapsed();
+    m_LastElapesedTimeNs = m_Timer.nsecsElapsed();
 
     emit pointsChanged();
 }
@@ -163,10 +162,8 @@ void MathGraph::placeSurface(const bool includeMin, const bool includeMax)
     m_Function->setValue(axisXIndex, oldXAxis);
     m_Function->setValue(axisYIndex, oldYAxis);
 
-    const qint64 msTime = m_Timer.elapsed();
-    const qint64 nsTime = m_Timer.nsecsElapsed();
-
-    qInfo() << "Calculation took: " << msTime << "ms " << nsTime << "ns";
+    m_LastElapesedTimeMs = m_Timer.elapsed();
+    m_LastElapesedTimeNs = m_Timer.nsecsElapsed();
 
     emit pointsChanged();
 }
@@ -188,10 +185,8 @@ void MathGraph::clear()
     m_Points.clear();
     m_PointsModel->endResetModel();
 
-    const qint64 msTime = m_Timer.elapsed();
-    const qint64 nsTime = m_Timer.nsecsElapsed();
-
-    qInfo() << "Clearing took: " << msTime << "ms " << nsTime << "ns";
+    m_LastElapesedTimeMs = m_Timer.elapsed();
+    m_LastElapesedTimeNs = m_Timer.nsecsElapsed();
 
     emit rangesChanged();
     emit pointsChanged();
@@ -235,9 +230,9 @@ void MathGraph::fromJson(const QJsonObject &object)
         qWarning() << "Range axes are not the same size";
     }
 
-    m_PointsModel->beginResetModel();
-
     reserve(points.size());
+
+    m_PointsModel->beginResetModel();
 
     MathPoint point;
     for (QJsonValueConstRef value : points) {
@@ -247,10 +242,8 @@ void MathGraph::fromJson(const QJsonObject &object)
 
     m_PointsModel->endResetModel();
 
-    const qint64 msTime = m_Timer.elapsed();
-    const qint64 nsTime = m_Timer.nsecsElapsed();
-
-    qInfo() << "fromJson took: " << msTime << "ms " << nsTime << "ns";
+    m_LastElapesedTimeMs = m_Timer.elapsed();
+    m_LastElapesedTimeNs = m_Timer.nsecsElapsed();
 
     emit rangesChanged();
     emit pointsChanged();

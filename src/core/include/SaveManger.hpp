@@ -24,11 +24,16 @@ public:
 
     Q_INVOKABLE bool isFolderValid() const { return m_FolderPath.isValid(); }
 
+    Q_INVOKABLE inline quint64 lastElapsedTimeMs() const { return m_LastElapesedTimeMs; }
+    Q_INVOKABLE inline quint64 lastElapsedTimeNs() const { return m_LastElapesedTimeNs; }
+
 private:
     IJsonObjectInterface *interface(const QAnyStringView objectName) const;
 
 private:
     QElapsedTimer m_Timer;
+    quint64 m_LastElapesedTimeMs, m_LastElapesedTimeNs;
+
     QUrl m_FolderPath;
     ObjectInterfacesType m_JsonObjects;
 };
