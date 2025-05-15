@@ -4,7 +4,7 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 project( labs
-    VERSION 4.0
+    VERSION 4.1
     LANGUAGES CXX
     DESCRIPTION "Android Qt labs"
 )

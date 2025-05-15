@@ -1,4 +1,4 @@
-package nubip.edu.ua.labs.app;
+package nubip.edu.ua.labs.graph;
 
 import android.util.Log;
 import android.content.Context;

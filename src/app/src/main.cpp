@@ -15,7 +15,7 @@ qint32 main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/nubip.edu.ua/imports");
-    engine.loadFromModule("labs.app", "MainWindow");
+    engine.loadFromModule(APP_NAME, "MainWindow");
 
     if (engine.rootObjects().isEmpty())
         return EXIT_FAILURE;

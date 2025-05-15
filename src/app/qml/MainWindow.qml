@@ -115,12 +115,12 @@ ApplicationWindow {
         ListElement {
             pageID: "function"
             pageName: qsTr("Функція")
-            pageSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/page/FunctionPage.qml"
+            pageSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/page/FunctionPage.qml"
         }
         ListElement {
             pageID: "graph"
             pageName: qsTr("Графік")
-            pageSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/page/GraphPage.qml"
+            pageSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/page/GraphPage.qml"
         }
     }
 
@@ -129,12 +129,12 @@ ApplicationWindow {
         ListElement {
             pageID: "settings"
             pageName: qsTr("Налаштування")
-            pageSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/page/SettingsPage.qml"
+            pageSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/page/SettingsPage.qml"
         }
         ListElement {
             pageID: "profile"
             pageName: qsTr("Студент")
-            pageSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/page/ProfilePage.qml"
+            pageSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/page/ProfilePage.qml"
         }
     }
 

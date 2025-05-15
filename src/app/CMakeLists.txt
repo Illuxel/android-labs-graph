@@ -36,14 +36,16 @@ qt_policy( SET QTP0001 NEW ) # Ensures that modules are put into the QML Import 
 qt_policy( SET QTP0002 NEW ) # Support for cmake generator expressions in android json builds
 qt_policy( SET QTP0004 NEW ) #
 
-set( APP_NAME "labs.app" )
+set( APP_NAME "labs.graph" )
 
 qt_add_executable( ${APP_NAME} ${SOURCES} MANUAL_FINALIZATION )
+
+target_compile_definitions( ${APP_NAME} PUBLIC APP_NAME="${APP_NAME}" )
 
 target_include_directories( ${APP_NAME}
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 )
-target_link_libraries( ${APP_NAME} PUBLIC Qt6::OpenGL Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Graphs labs.core labs.coreplugin )
+target_link_libraries( ${APP_NAME} PUBLIC Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Graphs labs.core labs.coreplugin )
 
 set_target_properties( ${APP_NAME} PROPERTIES
     WIN32_EXECUTABLE TRUE

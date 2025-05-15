@@ -32,19 +32,19 @@ ScrollView {
     property ListModel graphsModel: ListModel {
         ListElement {
             graphName: qsTr("Лінії")
-            graphSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/graph/LinesGraph.qml"
+            graphSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/graph/LinesGraph.qml"
         }
         ListElement {
             graphName: qsTr("Точки")
-            graphSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/graph/ScatterGraph.qml"
+            graphSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/graph/ScatterGraph.qml"
         }
         ListElement {
             graphName: qsTr("Точки 3D")
-            graphSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/graph/Scatter3DGraph.qml"
+            graphSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/graph/Scatter3DGraph.qml"
         }
         ListElement {
             graphName: qsTr("Поверхня 3D")
-            graphSource: "qrc:/nubip.edu.ua/imports/labs/app/qml/graph/Surface3DGraph.qml"
+            graphSource: "qrc:/nubip.edu.ua/imports/labs/graph/qml/graph/Surface3DGraph.qml"
         }
     }
 
